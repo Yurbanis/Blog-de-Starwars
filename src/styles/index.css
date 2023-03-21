@@ -1,3 +1,17 @@
-/* 
-    General Styles
-*/
+
+.margen1{
+width: 15%;
+margin-left: 130px;
+}
+
+.margen2{
+    margin-right: 130px;
+}
+
+h1{
+    color: red;
+}
+.corazon{
+    margin-left: 120px;
+    
+}
