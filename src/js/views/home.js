@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../../styles/home.css";
 import CardB from "./cardb";
-
+import Planets from "../component/plannet";
 
 export const Home = () => {
   const [url] = useState("https://www.swapi.tech/api");
@@ -12,51 +12,53 @@ export const Home = () => {
     getCharacters(`${url}/people`);
   }, []);
 
-  const getCharacters = async (url) => {
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-      //console.log(data);
-      
-      const { results } = data;
+  const getCharacters = (url) => {
+    fetch(url)
+      .then((response) => response.json())
+      .then((data) => {
+        const peopleData = data.results;
 
-      results.forEach(async ({ url }, i) => {
-        if (url) {
-          const resp = await fetch(url);
-          const info = await resp.json();
-          data.results[i].description = info.result.description;
-          data.results[i].propiedades = info.result.properties;
-        }
-      }); 
+        const peopleProperties = peopleData.map((people) =>
+          fetch(people.url).then((response) => response.json())
+        );
 
-      setCards(data);
-      console.log("********* Paso 2 ************");
-      console.log(data);
-      console.log("*********************");
-    } catch (error) {
-      console.log(error.message);
-    }
+        Promise.all(peopleProperties)
+          .then((peopleProperties1) => {
+            const peopleData1 = peopleData.map((people, index) => ({
+              ...people,
+              properties: peopleProperties1[index].result.properties,
+              description: peopleProperties1[index].result.description,
+            }));
+
+            setCards(peopleData1);
+          })
+          .catch((error) => console.error(error));
+      })
+      .catch((error) => console.error(error));
   };
-
 
   return (
     <div className="container">
-      <div className="row m-5">
-        <h1>Characters</h1>
-        <div className="d-flex flex-nowrap overflow-auto">
-          {!!cards && cards.results.map(({ uid, name, descripcion, propiedades }) => {
-              console.log(descripcion);
-              return (
-                <div className="col-md-4" key={uid}>
-                  <CardB
-                    name={name}
-                    descripcion={descripcion}
-                    propiedades={propiedades}
-                  />
-                </div>
-              );
-            })}
+      <div>
+        <div className="row m-5">
+          <h1>Characters</h1>
+          <div className="d-flex flex-nowrap overflow-auto">
+            {!!cards &&
+              cards.map(({ uid, name, properties, description }) => {
+                return (
+                  <div className="col-md-4" key={uid}>
+                    <CardB
+                      uid={uid}
+                      name={name}
+                      propiedades={properties}
+                      description={description}
+                    />
+                  </div>
+                );
+              })}
+          </div>
         </div>
+        <Planets />
       </div>
     </div>
   );
